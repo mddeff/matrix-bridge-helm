@@ -1,0 +1,16 @@
+apiVersion: v2
+name: mautrix-signal
+description: A Helm chart for the Mautrix Matrix-Signal puppeting bridge.
+
+type: application
+
+version: 0.0.1
+
+appVersion: "v0.8.0"
+
+maintainers:
+  - name: Mike Deffenbaugh
+    url: https://zeroent.net
+sources:
+  - https://github.com/mautrix/signal
+  - https://github.com/mddeff/matrix-bridge-helm
