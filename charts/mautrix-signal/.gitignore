@@ -1,0 +1,5 @@
+charts/
+# Real deployment-specific secrets (tokens, generated registration) -- never these,
+# this repo is public. Real values live SOPS-encrypted in kube-gitops instead.
+dev-values.yml
+signal-registration.yml

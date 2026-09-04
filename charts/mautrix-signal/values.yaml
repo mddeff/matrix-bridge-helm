@@ -1,9 +1,17 @@
 # Default values for mautrix-signal.
 # This is a YAML-formatted file.
 
-# If disabled, We'll just look at the config.yaml stored in the PVC, otherwise the config present in mautrixSignalConfig 
+
+postgresql:
+  auth:
+    postgresPassword: mautrix-signal
+    password: mautrix-signal
+    database: mautrix-signal
+    username: mautrix-signal
+
+# If enabled, We'll override config.yaml stored in the PVC with the one from the configmap (below)
 #   (below) will be applied by an initContainer on startup
-configmapOverride: true
+configmapOverride: false
 
 # Everything under this key will be dumped whole-hog into a configmap 
 #   and then mounted as config.yaml in the container
@@ -146,8 +154,8 @@ mautrixSignalConfig:
       #     mxid - Specific user
       permissions:
           "*": relay
-          "example.com": user
-          "@admin:example.com": admin
+          # "example.com": user
+          # "@admin:example.com": admin
 
   # Config for the bridge's database.
   database:
@@ -158,7 +166,7 @@ mautrixSignalConfig:
       #           https://github.com/mattn/go-sqlite3#connection-string
       #   Postgres: Connection string. For example, postgres://user:password@host/database?sslmode=disable
       #             To connect via Unix socket, use something like postgres:///dbname?host=/var/run/postgresql
-      uri: postgres://user:password@host/database?sslmode=disable
+      uri: postgres://mautrix-signal:mautrix-signal@host/mautrix-signal?sslmode=disable
       # Maximum number of connections.
       max_open_conns: 5
       max_idle_conns: 1
@@ -172,7 +180,7 @@ mautrixSignalConfig:
       # The address that this appservice can use to connect to the homeserver.
       # Local addresses without HTTPS are generally recommended when the bridge is running on the same machine,
       # but https also works if they run on different machines.
-      address: http://asdf.localhost:8008
+      address: http://synapse:8008
       # The domain of the homeserver (also known as server_name, used for MXIDs, etc).
       domain: example.com
 
@@ -206,7 +214,7 @@ mautrixSignalConfig:
       # Like the homeserver address, a local non-https address is recommended when the bridge is on the same machine.
       # If the bridge is elsewhere, you must secure the connection yourself (e.g. with https or wireguard)
       # If you want to use https, you need to use a reverse proxy. The bridge does not have TLS support built in.
-      address: http://localhost:29328
+      address: http://release-name-mautrix-signal:29328
       # A public address that external services can use to reach this appservice.
       # This is only needed for things like public media. A reverse proxy is generally necessary when using this field.
       # This value doesn't affect the registration file.
@@ -354,29 +362,29 @@ mautrixSignalConfig:
           # Interpretation of this field depends on the network connector.
           max_batches_override: {}
 
-  # Settings for enabling double puppeting
-  double_puppet:
-      # Servers to always allow double puppeting from.
-      # This is only for other servers and should NOT contain the server the bridge is on.
-      servers:
-          anotherserver.example.org: https://matrix.anotherserver.example.org
-      # Whether to allow client API URL discovery for other servers. When using this option,
-      # users on other servers can use double puppeting even if their server URLs aren't
-      # explicitly added to the servers map above.
-      allow_discovery: false
-      # Shared secrets for automatic double puppeting.
-      # See https://docs.mau.fi/bridges/general/double-puppeting.html for instructions.
-      secrets:
-          example.com: as_token:foobar
+  # # Settings for enabling double puppeting
+  # double_puppet:
+  #     # Servers to always allow double puppeting from.
+  #     # This is only for other servers and should NOT contain the server the bridge is on.
+  #     servers:
+  #         anotherserver.example.org: https://matrix.anotherserver.example.org
+  #     # Whether to allow client API URL discovery for other servers. When using this option,
+  #     # users on other servers can use double puppeting even if their server URLs aren't
+  #     # explicitly added to the servers map above.
+  #     allow_discovery: false
+  #     # Shared secrets for automatic double puppeting.
+  #     # See https://docs.mau.fi/bridges/general/double-puppeting.html for instructions.
+  #     secrets:
+  #         example.com: as_token:foobar
 
   # End-to-bridge encryption support options.
   #
   # See https://docs.mau.fi/bridges/general/end-to-bridge-encryption.html for more info.
   encryption:
       # Whether to enable encryption at all. If false, the bridge will not function in encrypted rooms.
-      allow: false
+      allow: true
       # Whether to force-enable encryption in all bridged rooms.
-      default: false
+      default: true
       # Whether to require all messages to be encrypted and drop any unencrypted messages.
       require: false
       # Whether to use MSC3202/MSC4203 instead of /sync long polling for receiving encryption-related data.
@@ -555,11 +563,11 @@ resources: {}
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
-    path: /
+    path: /_matrix/mau/live
     port: http
 readinessProbe:
   httpGet:
-    path: /
+    path: /_matrix/mau/ready
     port: http
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/

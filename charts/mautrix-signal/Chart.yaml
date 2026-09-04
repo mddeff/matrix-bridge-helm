@@ -6,7 +6,7 @@ type: application
 
 version: 0.0.1
 
-appVersion: "v0.8.0"
+appVersion: "v26.05"
 
 maintainers:
   - name: Mike Deffenbaugh
@@ -14,3 +14,8 @@ maintainers:
 sources:
   - https://github.com/mautrix/signal
   - https://github.com/mddeff/matrix-bridge-helm
+
+dependencies:
+- name: postgresql
+  version: 16.5.5
+  repository: https://charts.bitnami.com/bitnami

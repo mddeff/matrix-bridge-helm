@@ -50,21 +50,21 @@ spec:
           volumeMounts:
           - name: data
             mountPath: /data
-          - name: config
-            mountPath: /data/config.yaml
-            subPath: config.yaml
+          # - name: config
+          #   mountPath: /data/config.yaml
+          #   subPath: config.yaml
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      # initContainers:
-      #   - name: copy-config
-      #     image: busybox
-      #     command: ["sh", "-c", "if [ \"{{ .Values.configmapOverride | default true }}\" = \"true\" ]; then cp /config/config.yml /data/config.yml; fi"]
-      #     volumeMounts:
-      #       - name: config
-      #         mountPath: /config
-      #       - name: data
-      #         mountPath: /data
+      initContainers:
+        - name: copy-config
+          image: busybox
+          command: ["sh", "-c", "if [ ! -f /data/config.yaml ] || [ \"{{ .Values.configmapOverride | default false }}\" = \"true\" ]; then cp /config/config.yaml /data/config.yaml; fi"]
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: data
+              mountPath: /data
       volumes:
       - name: config
         configMap:
