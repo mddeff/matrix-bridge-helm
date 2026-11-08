@@ -1,0 +1,54 @@
+name: Publish Charts to GHCR (OCI)
+
+# Publishes each chart under charts/* as an OCI Helm chart to
+# ghcr.io/<owner>/charts/<chart>:<version>. This is the channel Flux's
+# OCIRepository pulls from directly (e.g. the dmz cluster, which has internet
+# egress but is firewalled off from internal git/registry hosts). Complements
+# release.yml (gh-pages Helm repo, kept for `helm repo add` / human use).
+#
+# Note: ghcr packages are created *private* on first push. Flip the package to
+# public once (GitHub -> Packages -> mautrix-signal -> Package settings) so Flux
+# can pull anonymously without a pull secret.
+
+on:
+  push:
+    branches: [main]
+    paths: ['charts/**']
+  workflow_dispatch: {}
+
+jobs:
+  oci-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      # The postgresql subchart dep is gitignored (not vendored), so it must be
+      # rebuilt from the Bitnami repo per Chart.lock at package time.
+      - name: Add chart dependency repos
+        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+      - name: Log in to GHCR
+        run: helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin <<<"${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Package and push each chart
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pkg
+          for chart in charts/*/; do
+            [ -f "${chart}Chart.yaml" ] || continue
+            echo "::group::package ${chart}"
+            helm dependency build "$chart"
+            helm package "$chart" -d /tmp/pkg
+            echo "::endgroup::"
+          done
+          for tgz in /tmp/pkg/*.tgz; do
+            echo "pushing $tgz -> oci://ghcr.io/${{ github.repository_owner }}/charts"
+            helm push "$tgz" "oci://ghcr.io/${{ github.repository_owner }}/charts"
+          done
