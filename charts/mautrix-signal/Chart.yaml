@@ -4,9 +4,9 @@ description: A Helm chart for the Mautrix Matrix-Signal puppeting bridge.
 
 type: application
 
-version: 0.0.1
+version: 0.0.2
 
-appVersion: "v26.05"
+appVersion: "v26.10"
 
 maintainers:
   - name: Mike Deffenbaugh
