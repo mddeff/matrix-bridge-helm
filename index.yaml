@@ -2,6 +2,26 @@ apiVersion: v1
 entries:
   mautrix-signal:
   - apiVersion: v2
+    appVersion: e2e994f99f8dfffe5ad1cc88a2d36449639a609e-amd64
+    created: "2026-11-08T23:17:25.674939885Z"
+    dependencies:
+    - name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.5.5
+    description: A Helm chart for the Mautrix Matrix-Signal puppeting bridge.
+    digest: 844ed6881a0c2b6bd197fabcfd6fdfaaeee6eee68f80ea417869dc446c16454c
+    maintainers:
+    - name: Mike Deffenbaugh
+      url: https://zeroent.net
+    name: mautrix-signal
+    sources:
+    - https://github.com/mautrix/signal
+    - https://github.com/mddeff/matrix-bridge-helm
+    type: application
+    urls:
+    - https://github.com/mddeff/matrix-bridge-helm/releases/download/mautrix-signal-0.0.3/mautrix-signal-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v2
     appVersion: v26.10
     created: "2026-11-08T22:34:38.177200315Z"
     dependencies:
@@ -41,4 +61,4 @@ entries:
     urls:
     - https://github.com/mddeff/matrix-bridge-helm/releases/download/mautrix-signal-0.0.1/mautrix-signal-0.0.1.tgz
     version: 0.0.1
-generated: "2026-11-08T22:34:38.177212607Z"
+generated: "2026-11-08T23:17:25.674959212Z"
