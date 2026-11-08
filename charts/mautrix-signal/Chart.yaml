@@ -4,7 +4,7 @@ description: A Helm chart for the Mautrix Matrix-Signal puppeting bridge.
 
 type: application
 
-version: 0.0.3
+version: 0.0.4
 
 # TEMPORARY edge-build pin (image.tag defaults to appVersion). v26.10 and earlier fail
 # Matrix->Signal attachment uploads with HTTP 400: Signal-Server v20261104.0.0 made
@@ -21,7 +21,7 @@ sources:
   - https://github.com/mautrix/signal
   - https://github.com/mddeff/matrix-bridge-helm
 
-dependencies:
-- name: postgresql
-  version: 16.5.5
-  repository: https://charts.bitnami.com/bitnami
+# No chart dependencies: the chart no longer bundles the Bitnami postgresql subchart.
+# Postgres is now provided by `database.mode` -- either an external DSN ("external") or a
+# CloudNativePG `Cluster` CR rendered by this chart ("cnpg"). This also removes the CI's
+# fragile `helm dependency build` against the sunsetting Bitnami chart repo.

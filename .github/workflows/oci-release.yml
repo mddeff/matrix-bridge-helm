@@ -29,11 +29,6 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      # The postgresql subchart dep is gitignored (not vendored), so it must be
-      # rebuilt from the Bitnami repo per Chart.lock at package time.
-      - name: Add chart dependency repos
-        run: helm repo add bitnami https://charts.bitnami.com/bitnami
-
       - name: Log in to GHCR
         run: helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin <<<"${{ secrets.GITHUB_TOKEN }}"
 
@@ -44,7 +39,8 @@ jobs:
           for chart in charts/*/; do
             [ -f "${chart}Chart.yaml" ] || continue
             echo "::group::package ${chart}"
-            helm dependency build "$chart"
+            # Build deps only if the chart declares any (mautrix-signal is now dep-free).
+            grep -q '^dependencies:' "${chart}Chart.yaml" && helm dependency build "$chart" || true
             helm package "$chart" -d /tmp/pkg
             echo "::endgroup::"
           done

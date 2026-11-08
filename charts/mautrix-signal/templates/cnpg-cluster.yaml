@@ -1,0 +1,60 @@
+{{- if eq .Values.database.mode "cnpg" }}
+{{- $c := .Values.database.cnpg }}
+{{- $name := $c.name | default (printf "%s-pg" (include "mautrix-signal.fullname" .)) }}
+# CloudNativePG Cluster backing the bridge's Postgres (database.mode=cnpg).
+# Requires the CloudNativePG operator (CRD postgresql.cnpg.io/v1) on the cluster.
+# The bridge connects via mautrixSignalConfig.database.uri pointed at {{ $name }}-rw.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "mautrix-signal.labels" . | nindent 4 }}
+spec:
+  instances: {{ $c.instances }}
+  {{- with $c.imageName }}
+  imageName: {{ . }}
+  {{- end }}
+  storage:
+    size: {{ $c.storage.size }}
+    {{- with $c.storage.storageClass }}
+    storageClass: {{ . }}
+    {{- end }}
+  {{- with $c.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $c.postgresql }}
+  postgresql:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  bootstrap:
+    initdb:
+      database: {{ $c.database }}
+      owner: {{ $c.owner }}
+      {{- with $c.ownerSecret }}
+      secret:
+        name: {{ . }}
+      {{- end }}
+      {{- if $c.import.enabled }}
+      import:
+        type: microservice
+        databases:
+          - {{ $c.import.source.dbname }}
+        source:
+          externalCluster: {{ $name }}-import-source
+      {{- end }}
+  {{- if $c.import.enabled }}
+  externalClusters:
+    - name: {{ $name }}-import-source
+      connectionParameters:
+        host: {{ $c.import.source.host | quote }}
+        port: {{ $c.import.source.port | quote }}
+        user: {{ $c.import.source.user | quote }}
+        dbname: {{ $c.import.source.dbname | quote }}
+        sslmode: {{ $c.import.source.sslMode | quote }}
+      password:
+        name: {{ $c.import.source.passwordSecret.name }}
+        key: {{ $c.import.source.passwordSecret.key }}
+  {{- end }}
+{{- end }}

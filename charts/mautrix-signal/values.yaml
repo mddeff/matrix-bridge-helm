@@ -2,12 +2,54 @@
 # This is a YAML-formatted file.
 
 
-postgresql:
-  auth:
-    postgresPassword: mautrix-signal
-    password: mautrix-signal
+# Postgres backend for the bridge. The bridge always reads its DSN from
+# mautrixSignalConfig.database.uri (below). `database.mode` controls whether this chart
+# also *provisions* the database:
+#   external - provision nothing; you point mautrixSignalConfig.database.uri at an
+#              existing Postgres (managed DB, another operator, a hand-run server, ...).
+#   cnpg     - render a CloudNativePG `Cluster` CR (requires the CNPG operator on the
+#              cluster). You still set mautrixSignalConfig.database.uri to the cluster's
+#              `-rw` service DSN (the owner creds you supply via database.cnpg.ownerSecret).
+database:
+  mode: external
+
+  cnpg:
+    # Name of the Cluster object. Empty => "<release-fullname>-pg".
+    # The read-write service is "<name>-rw", the generated secret is "<name>-app".
+    name: ""
+    instances: 1
+    # Postgres image. Empty => the operator's default. Pin for reproducibility, and match
+    # the source major version if importing (e.g. ghcr.io/cloudnative-pg/postgresql:17.4).
+    imageName: ""
+    storage:
+      size: 8Gi
+      # Empty => the cluster default StorageClass.
+      storageClass: ""
+    # Application database + owner role created in the new cluster.
     database: mautrix-signal
-    username: mautrix-signal
+    owner: mautrix-signal
+    # Secret (type kubernetes.io/basic-auth, keys username+password) providing the owner
+    # role's credentials. Empty => CNPG generates a random password in "<name>-app".
+    # Provide one so you can construct database.uri deterministically.
+    ownerSecret: ""
+    # Extra spec.postgresql (e.g. parameters:) and pod resources, merged verbatim.
+    postgresql: {}
+    resources: {}
+    # One-shot logical import at cluster creation (CNPG bootstrap.initdb.import,
+    # microservice = single database). Runs ONCE; ignored on later reconciles.
+    import:
+      enabled: false
+      source:
+        host: ""
+        port: 5432
+        # Source database name (also the target name in the new cluster).
+        dbname: ""
+        user: ""
+        sslMode: prefer
+        # Secret + key holding the source user's password.
+        passwordSecret:
+          name: ""
+          key: ""
 
 # If enabled, We'll override config.yaml stored in the PVC with the one from the configmap (below)
 #   (below) will be applied by an initContainer on startup
