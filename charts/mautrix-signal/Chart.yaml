@@ -4,9 +4,15 @@ description: A Helm chart for the Mautrix Matrix-Signal puppeting bridge.
 
 type: application
 
-version: 0.0.2
+version: 0.0.3
 
-appVersion: "v26.10"
+# TEMPORARY edge-build pin (image.tag defaults to appVersion). v26.10 and earlier fail
+# Matrix->Signal attachment uploads with HTTP 400: Signal-Server v20261104.0.0 made
+# `uploadLength` required on GET /v4/attachments/form/upload. Fixed by mautrix/signal
+# PR #703 (merge e2e994f, 2026-11-04), which is in main but not yet in a tagged release.
+# Pinned to that fix commit; edge images are per-arch (target dmz node = amd64). Revert
+# to a clean "v26.11" appVersion once that release ships (~2026-11-16).
+appVersion: "e2e994f99f8dfffe5ad1cc88a2d36449639a609e-amd64"
 
 maintainers:
   - name: Mike Deffenbaugh
